@@ -2,7 +2,7 @@
 
 A vue.js app for interactively exploring sound collections based on their spectrum.
 
-https://test.inspex.dev
+WIP: https://test.inspex.dev
 
 ## Project setup
 ```
