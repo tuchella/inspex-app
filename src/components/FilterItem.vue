@@ -1,7 +1,7 @@
 <template>
   <v-card class="my-2 elevation-2" v-if="display">
     <v-card-title class="py-0">
-      <v-switch dense inset :label="filter.name" v-model="filter.enabled" @change="toggleEnable"></v-switch>
+      <v-switch dense inset :label="filter.name" v-model="filter.enabled" @change="toggleEnable" :color=color></v-switch>
       <v-spacer></v-spacer>
 
       <v-btn
@@ -14,7 +14,7 @@
     <v-expand-transition>
     <v-card-text v-show="show">
       <v-range-slider hide-details="true" :max="filter.max" :min="filter.min" v-model="filter.value" @change="logValue"
-        :thumb-label=true :disabled="!filter.enabled"></v-range-slider>
+        :thumb-label=true :disabled="!filter.enabled" :color="color"></v-range-slider>
 
       <div>
         <span class="text-caption">{{ filter.min }}</span>
@@ -32,7 +32,7 @@
     data: () => ({
       show: false
     }),
-    props: ["filter", "display"],
+    props: ["filter", "display", "color"],
     methods: {
         toggleEnable() {
             if (this.filter.enabled) {

@@ -4,6 +4,7 @@
       <v-switch
         dense
         inset
+        :color="color"
         :label="group.name"
         v-model="group.enabled"
         @change="toggleEnable"
@@ -16,11 +17,13 @@
     </v-card-title>
     <v-expand-transition>
       <v-card-text v-show="show">
-        <v-btn text @click="toggleSelection" class="justify-start pl-0 pr-4" :ripple="false"
-          ><v-icon
-            class="pr-4"
-            :color="group.selected.length > 0 ? 'primary' : ''"
-          >
+        <v-btn
+          text
+          @click="toggleSelection"
+          v-if="group.items.length < 10"
+          class="justify-start pl-0 pr-4"
+          :ripple="false"
+          ><v-icon class="pr-4" :color="group.selected.length > 0 ? color : ''">
             {{ icon }} </v-icon
           >Select all</v-btn
         >
@@ -28,7 +31,8 @@
           v-model="group.selected"
           column
           multiple
-          active-class="primary text--primary"
+          v-if="group.items.length < 10"
+          :color="color"
           @change="logValue"
         >
           <v-chip
@@ -41,6 +45,31 @@
             {{ item }}
           </v-chip>
         </v-chip-group>
+        <v-autocomplete
+          v-else
+          v-model="group.selected"
+          :items="group.items"
+          auto-select-first
+          :color="color"
+          chips
+          filled
+          deletable-chips
+          multiple
+          small-chips
+        >
+          <template v-slot:selection="data">
+            <v-chip
+              v-bind="data.attrs"
+              :input-value="data.selected"
+              close
+              @click:close="remove(data.item)"
+            >
+              <span style="width: 100%; overflow: hidden; padding-rigth: 10px">
+                {{ data.item }}
+              </span>
+            </v-chip>
+          </template>
+        </v-autocomplete>
         {{ group.overflow > 0 ? `...and ${group.overflow} more` : "" }}
       </v-card-text>
     </v-expand-transition>
@@ -53,7 +82,7 @@ export default {
   data: () => ({
     show: false,
   }),
-  props: ["group", "display"],
+  props: ["group", "display", "color"],
   computed: {
     allSelected() {
       return this.group.selected.length === this.group.items.length;
@@ -69,6 +98,10 @@ export default {
   },
 
   methods: {
+    remove(item) {
+      const index = this.group.selected.indexOf(item);
+      if (index >= 0) this.group.selected.splice(index, 1);
+    },
     toggleEnable() {
       if (this.group.enabled) {
         this.show = true;
