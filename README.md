@@ -1,5 +1,9 @@
 # inspex-app
 
+A vue.js app for interactively exploring sound collections based on their spectrum.
+
+https://test.inspex.dev
+
 ## Project setup
 ```
 npm install
