@@ -10,26 +10,28 @@ const routes = [
   {
     path: '/',
     alias: '/lorenz',
-    name: 'Explorer',
+    name: 'lorenz',
     component: Explorer,
     props: {
-      color: "blue"
+      color: "blue",
+      fileUrlMapper: (slice) => 'https://files.inspex.dev/lz/' + slice.file + '.mp3',
     }
   },
-  {
+  /*{
     path: '/overflow',
     name: 'OverflowExplorer',
     component: Explorer,
     props: {
       color: "red"
     }
-  },
+  },*/
   {
     path: '/uri',
-    name: 'UriExplorer',
+    name: 'uri',
     component: Explorer,
     props: {
-      color: "yellow"
+      color: "yellow",
+      fileUrlMapper: (slice) => 'https://files.inspex.dev/uri/uri-' + slice.id + '.mp3',
     }
   },
   {

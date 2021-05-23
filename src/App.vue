@@ -15,8 +15,8 @@
       <v-menu offset-y>
         <template v-slot:activator="{ on, attrs }">
           <v-btn x-large text dark v-bind="attrs" v-on="on">
-            <span :style="'color:' + color">{{ selected.name }}</span
-            >.inspex
+            <span :style="'color:' + color" v-if="!onAboutPage">{{ selected.name + '.' }}</span
+            ><span style="margin-right: 0.2em;" v-else>about </span>inspex
           </v-btn>
         </template>
         <v-list class="pa-0">
@@ -40,7 +40,7 @@
         </v-list>
       </v-menu>
 
-      <v-btn text x-large @click="drawerTwo = !drawerTwo"> </v-btn>
+      <!--<v-btn text x-large @click="drawerTwo = !drawerTwo"> </v-btn>-->
       <v-spacer></v-spacer>
 
       <v-toolbar-items class="hidden-xs-only">
@@ -64,33 +64,10 @@
       </v-toolbar-items>
     </v-app-bar>
 
-    <v-navigation-drawer v-model="drawer" absolute top temporary>
-      <v-list nav dense>
-        <v-list-item-group
-          v-model="items"
-          active-class="deep-purple--text text--accent-4"
-        >
-          <v-list-item>
-            <v-list-item-title>Foo</v-list-item-title>
-          </v-list-item>
-
-          <v-list-item>
-            <v-list-item-title>Bar</v-list-item-title>
-          </v-list-item>
-
-          <v-list-item>
-            <v-list-item-title>Fizz</v-list-item-title>
-          </v-list-item>
-
-          <v-list-item>
-            <v-list-item-title>Buzz</v-list-item-title>
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-    </v-navigation-drawer>
-
     <v-main>
-      <router-view />
+      <keep-alive max="5">
+        <router-view :key="$route.name" />
+      </keep-alive>
     </v-main>
   </v-app>
 </template>
@@ -108,10 +85,10 @@ export default {
         name: "lorenz",
         color: "blue",
       },
-      {
+      /*{
         name: "overflow",
         color: "red",
-      },
+      },*/
       {
         name: "uri",
         color: "yellow",
@@ -122,10 +99,24 @@ export default {
       color: "blue",
     },
   }),
+  created() {
+    this.items.forEach(i => {
+      if (i.name == this.$route.name) {
+        this.selected = i;
+      }
+    })
+  },
   computed: {
     color: function () {
       return colors[this.selected.color].base;
     },
+    onAboutPage: function() {
+      if(this.$route.path == "/about") {
+          return true
+        } else {
+          return false
+        }
+    }
   },
 };
 </script>

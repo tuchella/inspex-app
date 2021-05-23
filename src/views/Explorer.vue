@@ -81,7 +81,7 @@
         </div>
       </v-col>
       <v-col cols="12" md="8">
-          <Graph v-if="hasSlices" v-bind:slices="slices" v-bind:color="color" />
+          <Graph v-if="hasSlices" v-bind:slices="slices" v-bind:color="color" v-bind:axis="axis" />
           <Readme v-else />
       </v-col>
     </v-row>
@@ -93,18 +93,18 @@
               Run
             </v-btn>
           </v-col>
-          <v-col cols="2">
+          <v-col cols="1">
             <v-progress-circular
               v-if="loading"
-              class="py-6"
+              class="py-5"
               indeterminate
               :color=color
             ></v-progress-circular>
           </v-col>
-          <v-col class="text-right py-6" v-if="time > 0">
-            <span class="overline"> 5049 results in {{time / 1000 }} s </span>
+          <v-col class="text-right py-4" v-if="time > 0">
+            <span class="overline"> {{ slices.length }} results in {{time / 1000 }} s </span>
           </v-col>
-          <v-col class="text-right py-6" v-else>
+          <v-col class="text-right py-4" v-else>
             <span class="overline"> Click RUN to start analysis </span>
           </v-col>
         </v-row>
@@ -121,7 +121,7 @@ import Graph from '@/components/Graph';
 import GroupItem from "@/components/GroupItem";
 import Readme from '../components/Readme.vue';
 
-import * as client from "@/utils/mock-client";
+import * as client from "@/utils/inspex-client";
 import colors from "vuetify/lib/util/colors";
 const colorVariants = [
     'lighten5',
@@ -141,9 +141,9 @@ export default {
     FilterItem,
     GroupItem,
     Graph,
-    Readme
+    Readme,
   },
-  props: ["color"],
+  props: ["color", "fileUrlMapper"],
   data: () => ({
     time: 0,
     search: "",
@@ -259,18 +259,21 @@ export default {
   mounted() {
     console.log(this.groups);
   },
-  watch: {
+  //watch: {
     // call again the method if the route changes
-    '$route': 'plot'
-  },
+    //'$route': 'plot'
+  //},
   created() {
-    client.getFilters().then((response) => {
+    
+    console.log(process.env);
+    client.getFilters(this.apiUrl).then((response) => {
       const f = response.data.stat.map((s) => ({
         name: `${s.stat.type}.${s.stat.composition}`,
         min: Math.round(s.start),
         max: Math.round(s.end),
         value: [Math.round(s.start), Math.round(s.end)],
         enabled: false,
+        unit: this.getUnit(s.stat),
       }));
       const g = response.data.meta.map((s) => ({
         name: s.key,
@@ -284,8 +287,10 @@ export default {
         this.filters = f;
         this.groups = g;
         this.loading = false;
+        this.axis.x = f[0].name;
+        this.axis.y = f[f.length/2].name;
+        this.axis.z = f[f.length - 1].name;
       });
-      console.log(f);
     });
   },
 
@@ -308,14 +313,17 @@ export default {
       request.x = this.toStat(this.axis.x);
       request.y = this.toStat(this.axis.y);
       request.z = this.toStat(this.axis.z);
-      request.limit = 512;
+      request.limit = 128;
 
       this.loading = true;
       const start = Date.now();
-        client.runAnalysis(request).then((response) => {
+        client.runAnalysis(this.apiUrl, request).then((response) => {
           this.loading = false;
           this.time = Date.now() - start;
           this.slices = response.data;
+          this.slices.forEach((s) => {
+            s.file = this.fileUrlMapper(s);
+          })
           
           const colorPack = colors[this.color]; 
           this.slices.forEach((s,i) => {
@@ -323,6 +331,17 @@ export default {
             s.color = colorPack[colorVariants[variant]];
           })
         });
+    },
+    getUnit(stat) {
+      if (stat.type == 'duration') {
+        return 'ms'
+      } else if (stat.type == 'pitch' || stat.type == 'centroid' || stat.type == 'rolloff' || stat.type == 'spread') {
+        return 'Hz'
+      } else if (stat.type == 'peak' || stat.type == 'loudness') {
+        return 'dB'
+      } else {
+        return ''
+      }
     },
     toStat(name) {
       if (!name) {
@@ -339,6 +358,9 @@ export default {
   computed: {
     hasSlices() {
       return this.slices.length > 0
+    },
+    apiUrl() {
+      return process.env.VUE_APP_API_URL.replace("{{subdomain}}", this.$route.name)
     }
   }
 };

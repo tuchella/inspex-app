@@ -1,4 +1,4 @@
-export function getFilters() {
+export function getFilters(_) {
     return new Promise((resolve) => {
         resolve({
             data: {
@@ -362,7 +362,7 @@ export function getFilters() {
     })
 }
 
-export function runAnalysis(request) {
+export function runAnalysis(_, request) {
     return new Promise((resolve, reject) => {
         setInterval(() => {
             if (request) {
